@@ -1,0 +1,921 @@
+{
+	"info": {
+		"_postman_id": "43d57e6c-7cea-4a63-a6f4-e002fb59cc7c",
+		"name": "E2E",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37140310",
+		"_collection_link": "https://www.postman.com/satellite-observer-26685990/workspace/portnov/collection/37140310-43d57e6c-7cea-4a63-a6f4-e002fb59cc7c?action=share&source=collection_link&creator=37140310"
+	},
+	"item": [
+		{
+			"name": "login as Student",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var returnCode = pm.response.code;",
+							"",
+							"",
+							"pm.test(\"Status code is 200\", returnCode);",
+							"",
+							"pm.test(\"Response time is less than 300ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(300);",
+							"});",
+							"",
+							"const schema = {",
+							"  type: \"object\",",
+							"  properties: {",
+							"    user: {",
+							"      type: \"object\",",
+							"      properties: {",
+							"        id: { type: \"number\" },",
+							"        name: { type: \"string\" },",
+							"        role: { type: \"string\", enum: [\"STUDENT\", \"TEACHER\"] },",
+							"        email: { type: \"string\", format: \"email\" }",
+							"      },",
+							"      required: [\"id\", \"name\", \"role\", \"email\"]",
+							"    },",
+							"    token: { type: \"string\" }",
+							"  },",
+							"  required: [\"user\", \"token\"]",
+							"};",
+							"",
+							"const data = pm.response.json();",
+							"pm.test(\"Schema is valid\", function () {",
+							"  const isValid = tv4.validate(data, schema);",
+							"  pm.expect(isValid, tv4.error).to.be.true;",
+							"});",
+							"",
+							"",
+							"",
+							"",
+							"if (returnCode == 200) {",
+							"",
+							"    token = pm.response.json()['token']",
+							"\t\tstudentid = pm.response.json()['user'].id",
+							"",
+							"\t\t",
+							"",
+							"",
+							"",
+							"    pm.collectionVariables.set(\"studentToken\",token)",
+							"    console.log(\"studentToken saved\")",
+							"",
+							"\t\tpm.collectionVariables.set(\"studentid\",studentid)",
+							"\t\tconsole.log(`login with  student id: ${studentid}`)",
+							"",
+							"",
+							"",
+							"",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"{{Student_email}}\",\n  \"password\": \"{{Student_password}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/sign-in",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"sign-in"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login as Teacher",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var returnCode = pm.response.code;",
+							"",
+							"",
+							"pm.test(\"Status code is 200\", returnCode);",
+							"",
+							"pm.test(\"Response time is less than 300ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(300);",
+							"});",
+							"",
+							"pm.test(\"Auth result\", function () {",
+							"\tvar jsonData = pm.response.json();",
+							"\tpm.expect(jsonData.status).to.not.equal(\"Error\");",
+							"});",
+							"",
+							"",
+							"if (returnCode == 200) {",
+							"",
+							"    token = pm.response.json()['token']",
+							"",
+							"    pm.collectionVariables.set(\"TeacherToken\",token)",
+							"    console.log(\"TeacherToken saved\")",
+							"",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"{{Teacher_email}}\",\n  \"password\": \"{{Teacher_password}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/sign-in",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"sign-in"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create new quiz",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"Response content type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 300ms\", function () {",
+							"  pm.expect(pm.response.responseTime).to.be.below(300);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields - id, createdAt, and updatedAt\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.id).to.exist;",
+							"    pm.expect(responseData.createdAt).to.exist;",
+							"    pm.expect(responseData.updatedAt).to.exist;",
+							"});",
+							"",
+							"",
+							"pm.test(\"Id is a non-negative integer\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.id).to.be.a('number').and.to.be.at.least(0, \"Id should be a non-negative integer\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"CreatedAt and updatedAt are in a valid date-time format\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$/);",
+							"    pm.expect(responseData.updatedAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$/);",
+							"});",
+							"",
+							"",
+							"// Add a test to validate the response schema",
+							"pm.test(\"Response schema is valid\", function () {",
+							"  var schema = {",
+							"    type: \"object\",",
+							"    properties: {",
+							"      id: { type: \"number\" },",
+							"      createdAt: { type: \"string\" },",
+							"      updatedAt: { type: \"string\" }",
+							"    },",
+							"    required: [\"id\", \"createdAt\", \"updatedAt\"],",
+							"  };",
+							"",
+							"  var response = pm.response.json();",
+							"  pm.expect(tv4.validate(response, schema)).to.be.true;",
+							"});",
+							"",
+							"",
+							"",
+							"    id = pm.response.json()['id']",
+							"",
+							"    pm.collectionVariables.set(\"quizz_id\",id)",
+							"    console.log(`quizz ${id} created`)",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TeacherToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"{{$randomProduct}}\",\n  \"totalScore\": 18,\n  \"passingPercentage\": 75,\n  \"showStopperQuestion\": 1,\n  \"questions\": [\n    {\n      \"type\": \"TEXTUAL\",\n      \"question\": \"What is your name?\",\n      \"score\": 5\n    },\n    {\n      \"type\": \"SINGLE_CHOICE\",\n      \"question\": \"Which city is city largest in California?\",\n      \"score\": 7,\n      \"answer\": 2,\n      \"hasOtherOption\": false,\n      \"options\": [\n        \"San Francisco\",\n        \"Sacramento\",\n        \"Los Angeles\",\n        \"Redding\"\n      ]\n    },\n    {\n      \"type\": \"MULTIPLE_CHOICE\",\n      \"question\": \"Who was apple founded by?\",\n      \"score\": 6,\n      \"answers\": [\n        0,\n        1,\n        2\n      ],\n      \"hasOtherOption\": true,\n      \"options\": [\n        \"Steve Jobs\",\n        \"Steve Wozniak\",\n        \"Ronald Wayne\",\n        \"Ronald Reagan\"\n      ]\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/quiz",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"quiz"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update new quiz",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"Response content type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 300ms\", function () {",
+							"  pm.expect(pm.response.responseTime).to.be.below(300);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields - id, createdAt, and updatedAt\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.id).to.exist;",
+							"    pm.expect(responseData.createdAt).to.exist;",
+							"    pm.expect(responseData.updatedAt).to.exist;",
+							"});",
+							"",
+							"",
+							"pm.test(\"Id is a non-negative integer\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.id).to.be.a('number').and.to.be.at.least(0, \"Id should be a non-negative integer\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"CreatedAt and updatedAt are in a valid date-time format\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$/);",
+							"    pm.expect(responseData.updatedAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$/);",
+							"});",
+							"",
+							"",
+							"// Add a test to validate the response schema",
+							"pm.test(\"Response schema is valid\", function () {",
+							"  var schema = {",
+							"    type: \"object\",",
+							"    properties: {",
+							"      id: { type: \"number\" },",
+							"      createdAt: { type: \"string\" },",
+							"      updatedAt: { type: \"string\" }",
+							"    },",
+							"    required: [\"id\", \"createdAt\", \"updatedAt\"],",
+							"  };",
+							"",
+							"  var response = pm.response.json();",
+							"  pm.expect(tv4.validate(response, schema)).to.be.true;",
+							"});",
+							"",
+							"",
+							"",
+							"   let id = pm.collectionVariables.get(\"quizz_id\");",
+							"",
+							"    pm.collectionVariables.set(\"quizz_id\",id)",
+							"    console.log(`quizz id=${id} updated`)",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TeacherToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"{{$randomProduct}}\",\n  \"totalScore\": 18,\n  \"passingPercentage\": 75,\n  \"showStopperQuestion\": 1,\n  \"questions\": [\n    {\n      \"type\": \"TEXTUAL\",\n      \"question\": \"What is your name?\",\n      \"score\": 5\n    },\n    {\n      \"type\": \"SINGLE_CHOICE\",\n      \"question\": \"Which city is city largest in California?\",\n      \"score\": 7,\n      \"answer\": 2,\n      \"hasOtherOption\": false,\n      \"options\": [\n        \"{{$randomCity}}\",\n        \"{{$randomCity}}\",\n        \"Los Angeles\",\n        \"{{$randomCity}}\"\n      ]\n    },\n    {\n      \"type\": \"MULTIPLE_CHOICE\",\n      \"question\": \"Who was apple founded by?\",\n      \"score\": 6,\n      \"answers\": [\n        0,\n        1,\n        2\n      ],\n      \"hasOtherOption\": true,\n      \"options\": [\n        \"Steve Jobs\",\n        \"Steve Wozniak\",\n        \"Ronald Wayne\",\n        \"{{$randomFullName}}\",\n         \"{{$randomFullName}}\",\n          \"{{$randomFullName}}\"\n      ]\n    }\n  ],\n  \"id\":{{quizz_id}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/quiz",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"quiz"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get quizzes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"let data  = pm.response.json();",
+							"",
+							"var ids = [];",
+							"",
+							"",
+							"",
+							"",
+							"  let id = pm.collectionVariables.get(\"quizz_id\");",
+							"",
+							"",
+							"",
+							"pm.test(`quizz ${id} should in list`, function () {",
+							"\t\tconst isPresent = data.some(item=>item.id===id)",
+							"",
+							"",
+							"    pm.expect(isPresent).to.be.true; //If 'id' is not in the list, the test will fail.",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TeacherToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/quizzes",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"quizzes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "assign new quiz to Student",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const data = pm.response.json();",
+							"",
+							"pm.test(\"Response time is less than 400ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(400);",
+							"});",
+							"",
+							"pm.test('Response should be array', function(){",
+							"\tpm.expect(data).to.be.an('array');",
+							"})",
+							"",
+							"pm.test('Response should be array witj length above 0', function(){",
+							"\tpm.expect(data.length).to.be.above(0);",
+							"})",
+							"",
+							"const assigmentId = data.first()['id']",
+							"",
+							"pm.collectionVariables.set(\"assigmentid\",assigmentId)",
+							"console.log(`assigment id=${assigmentId} saved`)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TeacherToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"quizId\": {{quizz_id}},\n    \"userIds\": [{{studentid}}]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/assignment",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"assignment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check assignments as Student",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let data = pm.response.json();",
+							"",
+							"let assigmentId = pm.collectionVariables.get(\"assigmentid\")",
+							"",
+							"",
+							"pm.test(`ID ${assigmentId} is in the student's list of assigments`, function () {",
+							"    const isPresent = data.some(item => item.id === assigmentId); // Проверяем наличие ID",
+							"    pm.expect(isPresent).to.be.true; // Убедимся, что ID найден",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{studentToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/my-assignments",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"my-assignments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "submit assignment as Student",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"var schema = {",
+							"    \"items\": {",
+							"        \"type\": \"boolean\"",
+							"    }",
+							"};",
+							"",
+							"",
+							"",
+							"",
+							"const data = pm.response.json();",
+							"const assigmentId = pm.collectionVariables.get('assigmentid');",
+							"const index = data.findIndex(item => item.id === assigmentId);",
+							"",
+							"",
+							"const assignmentGroupID = data[index]['assignmentGroupID'];",
+							"",
+							"console.log(`assignmentGroupID ${assignmentGroupID} was saved`);",
+							"",
+							"",
+							"pm.test(\"Response status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"  pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate the response schema against the expected schema\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.have.property('assignment_id');",
+							"    pm.expect(responseData).to.have.property('status');",
+							"    pm.expect(responseData).to.have.property('submitted_by');",
+							"    pm.expect(responseData).to.have.property('submitted_at');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Assignment group ID is saved and not null\", function () {",
+							"  const responseData = pm.response.json();",
+							"  ",
+							"  pm.expect(responseData).to.have.property('assignmentGroupID').that.is.not.null;",
+							"});",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{studentToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"assignmentId\": {{assigmentid}},\n  \"answers\": [\n    {\n    \"textAnswer\": \"This is my answer\"\n      \n    },\n   { \"answer\": [\n        0\n      ]\n    },\n\n   { \"answer\": [\n        0,2,3\n      ]\n    }\n\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/submit-assignment",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"submit-assignment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "grade assignment as Teacher",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"",
+							"pm.test(\"Response time is within an acceptable range\", function () {",
+							"  pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response body matches the expected schema for the assignment endpoint\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('assignmentId');",
+							"    pm.expect(responseData.assignmentId).to.be.a('number');",
+							"    pm.expect(responseData).to.have.property('title');",
+							"    pm.expect(responseData.title).to.be.a('string');",
+							"    pm.expect(responseData).to.have.property('description');",
+							"    pm.expect(responseData.description).to.be.a('string');",
+							"    pm.expect(responseData).to.have.property('dueDate');",
+							"    pm.expect(responseData.dueDate).to.be.a('string');",
+							"    pm.expect(responseData).to.have.property('status');",
+							"    pm.expect(responseData.status).to.be.a('string');",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TeacherToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"summary\": \"Summary from teacher\",\n  \"result\": \"PASSED\",\n  \"grades\": [\n    {\n      \"comment\": \"Teacher comment\",\n      \"additionalScore\": 5\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/assignment/{{assigmentid}}",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"assignment",
+						"{{assigmentid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get grades as Student",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response time is less than 500ms\", function () {",
+							"  pm.expect(pm.response.responseTime).to.be.below(500);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required schema for my-grades endpoint\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('grades').that.is.an('array');",
+							"    pm.expect(responseData).to.have.property('student').that.is.an('object');",
+							"    pm.expect(responseData.student).to.have.property('name').that.is.a('string');",
+							"    pm.expect(responseData.student).to.have.property('id').that.is.a('number');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{studentToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/my-grades",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"my-grades"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete quiz",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 500ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TeacherToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/quiz/{{quizz_id}}",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"quiz",
+						"{{quizz_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete assignment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"status is a success\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql('success');",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 400ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(400);",
+							"});",
+							"",
+							"pm.collectionVariables.unset(\"assigmentid\");",
+							"pm.collectionVariables.unset(\"TeacherToken\");",
+							"pm.collectionVariables.unset(\"studentToken\");",
+							"pm.collectionVariables.unset(\"quizz_id\");",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{TeacherToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/assignment/{{assignmentGroupID}}",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"assignment",
+						"{{assignmentGroupID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "studentid",
+			"value": ""
+		}
+	]
+}
